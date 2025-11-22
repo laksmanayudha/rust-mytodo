@@ -7,7 +7,7 @@ use tasks::{Task, add_task, list_tasks, mark_done, remove_task};
 #[command(name = "mytodo", version = "1.0", about = "Aplikasi todo-list CLI sederhana")]
 pub struct Cli {
     #[command(subcommand)]
-    command: Commands,
+    command: Option<Commands>
 }
 
 #[derive(Subcommand)]
@@ -17,7 +17,10 @@ pub enum Commands {
         description: String,
     },
     /// Menampilkan semua tugas
-    List,
+    List {
+        #[arg(long)]
+        pending:bool
+    },
     /// Menandai tugas dengan nomor tertentu sebagai selesai
     Done {
         id: usize,
@@ -33,17 +36,20 @@ pub fn run(cli: Cli) -> Result<bool, String> {
     let mut tasks: Vec<Task> = Vec::new();
 
     match cli.command {
-        Commands::Add { description } => {
+        Some(Commands::Add { description }) => {
             add_task(&mut tasks, description);
         }
-        Commands::List => {
-            list_tasks(&tasks);
+        Some(Commands::List { pending }) => {
+            list_tasks(&tasks, pending);
         }
-        Commands::Done { id } => {
+        Some(Commands::Done { id }) => {
             mark_done(&mut tasks, id);
         }
-        Commands::Remove { id } => {
+        Some(Commands::Remove { id }) => {
             remove_task(&mut tasks, id);
+        }
+        None => {
+            println!("Tidak ada perintah. Gunakan `--help` untuk daftar perintah.");
         }
     }
 

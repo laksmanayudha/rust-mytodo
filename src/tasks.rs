@@ -11,7 +11,7 @@ pub fn add_task(tasks: &mut Vec<Task>, desc: String) {
 }
 
 /// Menampilkan semua tugas dalam daftar
-pub fn list_tasks(tasks: &Vec<Task>) {
+pub fn list_tasks(tasks: &Vec<Task>, pending: bool) {
   if tasks.is_empty() {
     println!("(Belum ada tugas)");
     return;
@@ -19,6 +19,8 @@ pub fn list_tasks(tasks: &Vec<Task>) {
 
   println!("Daftar Tugas:");
   for (i, task) in tasks.iter().enumerate() {
+    if pending && task.done { continue; }
+
     let status = if task.done { "[x]" } else { "[]" };
     println!("{}. {} {}", i+1, status, task.description);
   }
