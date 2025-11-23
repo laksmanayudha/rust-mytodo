@@ -1,7 +1,9 @@
 mod tasks;
 
 use clap::{Parser, Subcommand};
-use tasks::{Task, add_task, list_tasks, mark_done, remove_task};
+use tasks::{add_task, list_tasks, mark_done, remove_task};
+
+use crate::tasks::load_tasks;
 
 #[derive(Parser)]
 #[command(name = "mytodo", version = "1.0", about = "Aplikasi todo-list CLI sederhana")]
@@ -33,7 +35,10 @@ pub enum Commands {
 
 pub fn run(cli: Cli) -> Result<bool, String> {
     // Inisialisasi daftar tugas (untuk sementara, kosong di awal)
-    let mut tasks: Vec<Task> = Vec::new();
+    let mut tasks = match load_tasks() {
+        Ok(t) => t,
+        Err(e) => return Err(e.to_string())
+    };
 
     match cli.command {
         Some(Commands::Add { description }) => {
