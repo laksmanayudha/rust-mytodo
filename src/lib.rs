@@ -3,7 +3,7 @@ mod tasks;
 use clap::{Parser, Subcommand};
 use tasks::{add_task, list_tasks, mark_done, remove_task};
 
-use crate::tasks::load_tasks;
+use crate::tasks::{load_tasks, save_tasks};
 
 #[derive(Parser)]
 #[command(name = "mytodo", version = "1.0", about = "Aplikasi todo-list CLI sederhana")]
@@ -34,7 +34,7 @@ pub enum Commands {
 }
 
 pub fn run(cli: Cli) -> Result<bool, String> {
-    // Inisialisasi daftar tugas (untuk sementara, kosong di awal)
+    // Load daftar tugas dari json file
     let mut tasks = match load_tasks() {
         Ok(t) => t,
         Err(e) => return Err(e.to_string())
@@ -43,15 +43,18 @@ pub fn run(cli: Cli) -> Result<bool, String> {
     match cli.command {
         Some(Commands::Add { description }) => {
             add_task(&mut tasks, description);
+            save_tasks(&tasks)?;
         }
         Some(Commands::List { pending }) => {
             list_tasks(&tasks, pending);
         }
         Some(Commands::Done { id }) => {
             mark_done(&mut tasks, id);
+            save_tasks(&tasks)?;
         }
         Some(Commands::Remove { id }) => {
             remove_task(&mut tasks, id);
+            save_tasks(&tasks)?;
         }
         None => {
             println!("Tidak ada perintah. Gunakan `--help` untuk daftar perintah.");

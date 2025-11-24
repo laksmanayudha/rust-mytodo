@@ -1,5 +1,7 @@
+use std::{fs::File, path::Path};
+
 use serde::{Deserialize, Serialize};
-// use serde_json::Result as SerdeResult;
+use serde_json::Result as SerdeResult;
 
 #[derive(Deserialize, Serialize)]
 pub struct Task {
@@ -54,32 +56,40 @@ pub fn remove_task(tasks: &mut Vec<Task>, id: usize) {
   println!("Tugas {} dihapus", id);
 }
 
-// fn load_tasks_one() -> Result<Vec<Task>, String> {
-//   let tasks_json = std::fs::read_to_string("tasks.json");
-//   if let Err(e) = tasks_json {
-//     return Err(e.to_string());
-//   }
+#[allow(dead_code)]
+fn load_tasks_one() -> Result<Vec<Task>, String> {
+  let tasks_json = std::fs::read_to_string("tasks.json");
+  if let Err(e) = tasks_json {
+    return Err(e.to_string());
+  }
 
-//   let validated_str = tasks_json.unwrap_or("[]".to_string());
-//   let tasks = serde_json::from_str(&validated_str);
-//   if let Err(e) = tasks {
-//     return Err(e.to_string());
-//   }
+  let validated_str = tasks_json.unwrap_or("[]".to_string());
+  let tasks = serde_json::from_str(&validated_str);
+  if let Err(e) = tasks {
+    return Err(e.to_string());
+  }
 
-//   return Ok(tasks.unwrap());
-// }
+  return Ok(tasks.unwrap());
+}
 
-// fn load_tasks_second() -> SerdeResult<Vec<Task>> {
-//   let tasks_json = std::fs::read_to_string("tasks.json");
-//   if let Err(_) = tasks_json {
-//     return Ok(Vec::new());
-//   }
+#[allow(dead_code)]
+fn load_tasks_second() -> SerdeResult<Vec<Task>> {
+  let tasks_json = std::fs::read_to_string("tasks.json");
+  if let Err(_) = tasks_json {
+    return Ok(Vec::new());
+  }
 
-//   let tasks: Vec<Task> = serde_json::from_str(&tasks_json.unwrap())?;
-//   Ok(tasks)
-// }
+  let tasks: Vec<Task> = serde_json::from_str(&tasks_json.unwrap())?;
+  Ok(tasks)
+}
 
 pub fn load_tasks() -> Result<Vec<Task>, String> {
+  let path = Path::new("tasks.json");
+  if !path.exists() {
+    File::create("tasks.json").expect("Gagal membuat file");
+    std::fs::write("tasks.json", "[]").expect("Gagal set default file content");
+  }
+
   let tasks_json: Result<String, std::io::Error> = std::fs::read_to_string("tasks.json");
   let tasks_json: String = match tasks_json {
       Ok(s) => s,
@@ -93,4 +103,18 @@ pub fn load_tasks() -> Result<Vec<Task>, String> {
   };
   
   Ok(tasks)
+}
+
+pub fn save_tasks(tasks: &Vec<Task>) -> Result<bool, String> {
+  let tasks_json = serde_json::to_string(tasks);
+  let tasks_json = match tasks_json {
+    Ok(t) => t,
+    Err(e) => return Err(e.to_string())
+  };
+
+  let write_to_file = std::fs::write("tasks.json", tasks_json);
+  match write_to_file {
+    Ok(_) => return Ok(true),
+    Err(e) => return Err(e.to_string())
+  };
 }
